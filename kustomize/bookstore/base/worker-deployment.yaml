@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstore-worker
+  labels:
+    app: bookstore-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookstore-worker
+  template:
+    metadata:
+      labels:
+        app: bookstore-worker
+    spec:
+      containers:
+        - name: worker
+          image: bookstore/worker:latest
+          envFrom:
+            - configMapRef:
+                name: bookstore-app-config
+            - secretRef:
+                name: bookstore-db-credentials

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookstore.fullname" . }}-worker
+  labels:
+    app: {{ include "bookstore.fullname" . }}-worker
+    {{- include "bookstore.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "bookstore.fullname" . }}-worker
+  template:
+    metadata:
+      labels:
+        app: {{ include "bookstore.fullname" . }}-worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ include "bookstore.imageTag" (dict "tag" .Values.worker.image.tag "globalTag" .Values.global.imageTag) }}"
+          envFrom:
+            - configMapRef:
+                name: {{ include "bookstore.fullname" . }}-app-config
+            - secretRef:
+                name: {{ include "bookstore.fullname" . }}-db-credentials

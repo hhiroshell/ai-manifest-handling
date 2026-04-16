@@ -1,0 +1,46 @@
+id: T1-R2
+tier: 1
+category: read
+title: "環境間差分の列挙"
+
+prompt: |
+  staging環境とprod環境で異なる設定値をすべて列挙してください。
+  対象は以下のリソースに含まれる設定値です:
+  - 各Deploymentのreplicas、imageタグ、resourcesのlimits
+  - HorizontalPodAutoscalerのmaxReplicas
+  - IngressのHost名
+  - ConfigMap bookstore-app-configのAPP_ENV
+
+  各項目について「設定項目: staging値 → prod値」の形式で列挙してください。
+  列挙が完了したら DONE と出力してください。
+
+expected_fields:
+  - key: "api replicas"
+    staging: "2"
+    prod: "5"
+  - key: "api CPU limit"
+    staging: "500m"
+    prod: "1000m"
+  - key: "api memory limit"
+    staging: "512Mi"
+    prod: "1Gi"
+  - key: "frontend replicas"
+    staging: "2"
+    prod: "3"
+  - key: "worker replicas"
+    staging: "2"
+    prod: "3"
+  - key: "HPA maxReplicas"
+    staging: "5"
+    prod: "20"
+  - key: "ingress hostname"
+    staging: "staging.bookstore.example.com"
+    prod: "bookstore.example.com"
+  - key: "APP_ENV"
+    staging: "staging"
+    prod: "production"
+
+scoring: precision_recall
+
+helm_expected_files_changed: []
+kustomize_expected_files_changed: []

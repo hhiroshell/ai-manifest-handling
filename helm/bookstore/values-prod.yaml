@@ -1,0 +1,26 @@
+# Production environment overrides
+
+global:
+  imageTag: v1.2.0
+
+frontend:
+  replicaCount: 3
+
+api:
+  replicaCount: 5
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  hpa:
+    maxReplicas: 20
+
+worker:
+  replicaCount: 3
+
+configmap:
+  app:
+    APP_ENV: production
+
+ingress:
+  hostname: bookstore.example.com

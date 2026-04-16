@@ -1,0 +1,34 @@
+id: T2-M1
+tier: 2
+category: modify
+title: "レプリカ数変更"
+
+prompt: |
+  staging環境のapiのreplica数を2から3に変更してください。
+  他の環境（dev、prod）のreplica数は変更しないでください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "staging api replicas == 3"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.replicas
+    expected: 3
+  - desc: "dev api replicas unchanged (== 1)"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.replicas
+    expected: 1
+  - desc: "prod api replicas unchanged (== 5)"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.replicas
+    expected: 5
+
+helm_expected_files_changed:
+  - values-staging.yaml
+kustomize_expected_files_changed:
+  - kustomize/bookstore/overlays/staging/patches/api-deployment.yaml

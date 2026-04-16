@@ -1,0 +1,67 @@
+id: T4-S1
+tier: 4
+category: structural
+title: "新サービスの追加"
+
+prompt: |
+  以下の仕様で `mailer` という新しいマイクロサービスを追加してください:
+  - Deployment:
+    - dev環境: replicas=1, image=bookstore/mailer:latest
+    - staging/prod環境: replicas=2, image=bookstore/mailer:v1.0.0
+    - コンテナ名: mailer
+  - Service:
+    - 名前: bookstore-mailer
+    - type: ClusterIP
+    - port: 25
+    - targetPort: 25
+  - ConfigMap:
+    - 名前: bookstore-mailer-config
+    - データ: SMTP_HOST=smtp.internal
+    - 全環境で同じ値
+
+  既存のリソースは変更しないでください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "dev mailer Deployment exists with replicas=1"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-mailer
+    field_path: spec.replicas
+    expected: 1
+  - desc: "dev mailer image is latest"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-mailer
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "latest"
+  - desc: "staging mailer Deployment exists with replicas=2"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-mailer
+    field_path: spec.replicas
+    expected: 2
+  - desc: "prod mailer Deployment exists with replicas=2"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-mailer
+    field_path: spec.replicas
+    expected: 2
+  - desc: "dev mailer Service exists on port 25"
+    env: dev
+    resource_kind: Service
+    resource_name: bookstore-mailer
+    field_path: spec.ports[0].port
+    expected: 25
+  - desc: "dev mailer ConfigMap has SMTP_HOST"
+    env: dev
+    resource_kind: ConfigMap
+    resource_name: bookstore-mailer-config
+    field_path: data.SMTP_HOST
+    expected: "smtp.internal"
+  - desc: "existing api Deployment unchanged in dev"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.replicas
+    expected: 1

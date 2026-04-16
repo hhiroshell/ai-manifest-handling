@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstore-worker
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: worker
+          image: bookstore/worker:v1.2.0

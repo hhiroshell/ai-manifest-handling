@@ -1,0 +1,48 @@
+id: T2-M2
+tier: 2
+category: modify
+title: "イメージタグ更新"
+
+prompt: |
+  prod環境の全サービス（frontend、api、worker）のイメージタグをv1.3.0に更新してください。
+  dev環境とstaging環境のイメージタグは変更しないでください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "prod frontend image tag == v1.3.0"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-frontend
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "v1.3.0"
+  - desc: "prod api image tag == v1.3.0"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "v1.3.0"
+  - desc: "prod worker image tag == v1.3.0"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "v1.3.0"
+  - desc: "staging image tags unchanged (v1.2.0)"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "v1.2.0"
+  - desc: "dev image tags unchanged (latest)"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    field_path: spec.template.spec.containers[0].image
+    expected_contains: "latest"
+
+helm_expected_files_changed:
+  - values-prod.yaml
+kustomize_expected_files_changed:
+  - kustomize/bookstore/overlays/prod/patches/api-deployment.yaml
+  - kustomize/bookstore/overlays/prod/patches/frontend-deployment.yaml
+  - kustomize/bookstore/overlays/prod/patches/worker-deployment.yaml

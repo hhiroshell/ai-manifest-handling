@@ -1,0 +1,43 @@
+id: T3-C2
+tier: 3
+category: cross-cutting
+title: "resource requestsの追加"
+
+prompt: |
+  workerのDeploymentにはresource requestsが設定されていません。
+  staging環境とprod環境のworker DeploymentにCPU 100m・メモリ 128Miのrequestsを追加してください。
+  dev環境のworker Deploymentには追加しないでください。
+  limitsは変更しないでください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "staging worker has cpu request 100m"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    field_path: spec.template.spec.containers[0].resources.requests.cpu
+    expected: "100m"
+  - desc: "staging worker has memory request 128Mi"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    field_path: spec.template.spec.containers[0].resources.requests.memory
+    expected: "128Mi"
+  - desc: "prod worker has cpu request 100m"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    field_path: spec.template.spec.containers[0].resources.requests.cpu
+    expected: "100m"
+  - desc: "prod worker has memory request 128Mi"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    field_path: spec.template.spec.containers[0].resources.requests.memory
+    expected: "128Mi"
+  - desc: "dev worker has NO requests"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-worker
+    check_type: field_absent
+    field_path: spec.template.spec.containers[0].resources.requests

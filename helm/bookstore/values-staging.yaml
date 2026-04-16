@@ -1,0 +1,26 @@
+# Staging environment overrides
+
+global:
+  imageTag: v1.2.0
+
+frontend:
+  replicaCount: 2
+
+api:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    maxReplicas: 5
+
+worker:
+  replicaCount: 2
+
+configmap:
+  app:
+    APP_ENV: staging
+
+ingress:
+  hostname: staging.bookstore.example.com

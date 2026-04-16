@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookstore-worker
+  labels:
+    app: bookstore-worker
+spec:
+  type: ClusterIP
+  selector:
+    app: bookstore-worker
+  ports:
+    - port: 8090
+      targetPort: 8090
+      protocol: TCP
+      name: http

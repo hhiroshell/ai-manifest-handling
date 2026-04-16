@@ -1,0 +1,49 @@
+id: T4-S2
+tier: 4
+category: structural
+title: "ラベルのリネーム"
+
+prompt: |
+  現在、全リソースでラベルキー `app` が使われています。
+  このラベルキーを `app.kubernetes.io/name` にリネームしてください。
+  全リソース・全環境（dev、staging、prod）で変更してください。
+  DeploymentのselectorとPod templateのラベルの整合性を保ってください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "dev api Deployment uses app.kubernetes.io/name label in metadata"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: label_exists
+    label_key: "app.kubernetes.io/name"
+  - desc: "dev api Deployment selector uses app.kubernetes.io/name"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: selector_uses_label
+    label_key: "app.kubernetes.io/name"
+  - desc: "dev api Deployment pod template uses app.kubernetes.io/name"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: pod_template_label_exists
+    label_key: "app.kubernetes.io/name"
+  - desc: "dev api Deployment does NOT use bare app label in selector"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: selector_label_absent
+    label_key: "app"
+  - desc: "prod api Deployment uses app.kubernetes.io/name"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: label_exists
+    label_key: "app.kubernetes.io/name"
+  - desc: "dev frontend Service selector uses app.kubernetes.io/name"
+    env: dev
+    resource_kind: Service
+    resource_name: bookstore-frontend
+    check_type: selector_uses_label
+    label_key: "app.kubernetes.io/name"

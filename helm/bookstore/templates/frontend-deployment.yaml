@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookstore.fullname" . }}-frontend
+  labels:
+    app: {{ include "bookstore.fullname" . }}-frontend
+    {{- include "bookstore.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "bookstore.fullname" . }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ include "bookstore.fullname" . }}-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ include "bookstore.imageTag" (dict "tag" .Values.frontend.image.tag "globalTag" .Values.global.imageTag) }}"
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: {{ include "bookstore.fullname" . }}-nginx-conf

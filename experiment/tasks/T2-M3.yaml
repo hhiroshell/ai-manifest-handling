@@ -1,0 +1,35 @@
+id: T2-M3
+tier: 2
+category: modify
+title: "環境変数の追加"
+
+prompt: |
+  dev環境のapiコンテナにのみ、環境変数 LOG_LEVEL=debug を追加してください。
+  staging環境とprod環境のapiコンテナには追加しないでください。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "dev api has LOG_LEVEL=debug"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: env_var_exists
+    env_var_name: LOG_LEVEL
+    env_var_value: debug
+  - desc: "staging api does NOT have LOG_LEVEL"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: env_var_absent
+    env_var_name: LOG_LEVEL
+  - desc: "prod api does NOT have LOG_LEVEL"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: env_var_absent
+    env_var_name: LOG_LEVEL
+
+helm_expected_files_changed:
+  - values.yaml
+kustomize_expected_files_changed:
+  - kustomize/bookstore/overlays/dev/

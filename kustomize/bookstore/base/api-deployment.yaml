@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstore-api
+  labels:
+    app: bookstore-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookstore-api
+  template:
+    metadata:
+      labels:
+        app: bookstore-api
+    spec:
+      containers:
+        - name: api
+          image: bookstore/api:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: bookstore-app-config
+            - secretRef:
+                name: bookstore-db-credentials
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi

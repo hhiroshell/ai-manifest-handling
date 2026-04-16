@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstore-nginx-conf
+data:
+  NGINX_WORKER_PROCESSES: "1"
+  NGINX_WORKER_CONNECTIONS: "1024"

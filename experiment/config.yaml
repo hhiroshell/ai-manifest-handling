@@ -1,0 +1,60 @@
+experiment:
+  model: claude-sonnet-4-6
+  temperature: 0
+  max_turns: 30
+  repetitions: 15
+
+  system_prompt: |
+    You are a Kubernetes platform engineer. You will be given manifest management tasks.
+    Complete each task by modifying the files in the repository.
+    Do not modify files unrelated to the task.
+    When done, output the word DONE on a line by itself.
+
+  allowed_bash_commands:
+    - kubectl
+    - helm
+    - kustomize
+    - cat
+    - diff
+    - git
+    - tree
+    - find
+    - ls
+    - yq
+
+tasks:
+  - id: T1-R1
+    tier: 1
+    category: read
+  - id: T1-R2
+    tier: 1
+    category: read
+  - id: T2-M1
+    tier: 2
+    category: modify
+  - id: T2-M2
+    tier: 2
+    category: modify
+  - id: T2-M3
+    tier: 2
+    category: modify
+  - id: T3-C1
+    tier: 3
+    category: cross-cutting
+  - id: T3-C2
+    tier: 3
+    category: cross-cutting
+  - id: T3-C3
+    tier: 3
+    category: cross-cutting
+  - id: T4-S1
+    tier: 4
+    category: structural
+  - id: T4-S2
+    tier: 4
+    category: structural
+
+paths:
+  helm_chart: helm/bookstore
+  kustomize_base: kustomize/bookstore/overlays
+  results: results

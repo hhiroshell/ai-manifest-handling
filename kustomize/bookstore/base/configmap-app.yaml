@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstore-app-config
+data:
+  DB_HOST: db.bookstore.svc.cluster.local
+  DB_PORT: "5432"
+  APP_ENV: development

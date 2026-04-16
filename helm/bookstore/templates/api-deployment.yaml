@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookstore.fullname" . }}-api
+  labels:
+    app: {{ include "bookstore.fullname" . }}-api
+    {{- include "bookstore.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "bookstore.fullname" . }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ include "bookstore.fullname" . }}-api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ include "bookstore.imageTag" (dict "tag" .Values.api.image.tag "globalTag" .Values.global.imageTag) }}"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: {{ include "bookstore.fullname" . }}-app-config
+            - secretRef:
+                name: {{ include "bookstore.fullname" . }}-db-credentials
+          resources:
+            limits:
+              cpu: {{ .Values.api.resources.limits.cpu }}
+              memory: {{ .Values.api.resources.limits.memory }}

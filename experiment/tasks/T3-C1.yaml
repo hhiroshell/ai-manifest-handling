@@ -1,0 +1,49 @@
+id: T3-C1
+tier: 3
+category: cross-cutting
+title: "ConfigMapの追加とマウント"
+
+prompt: |
+  以下の手順を実行してください:
+  1. FEATURE_NEW_UI=true というデータを持つ ConfigMap `bookstore-feature-flags` を新規作成してください。
+  2. 全環境（dev、staging、prod）の bookstore-api Deployment で、この ConfigMap を参照するよう設定してください。
+     envFrom または env[].valueFrom.configMapKeyRef のどちらを使ってもかまいません。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "dev: bookstore-feature-flags ConfigMap exists with FEATURE_NEW_UI=true"
+    env: dev
+    resource_kind: ConfigMap
+    resource_name: bookstore-feature-flags
+    field_path: data.FEATURE_NEW_UI
+    expected: "true"
+  - desc: "staging: bookstore-feature-flags ConfigMap exists with FEATURE_NEW_UI=true"
+    env: staging
+    resource_kind: ConfigMap
+    resource_name: bookstore-feature-flags
+    field_path: data.FEATURE_NEW_UI
+    expected: "true"
+  - desc: "prod: bookstore-feature-flags ConfigMap exists with FEATURE_NEW_UI=true"
+    env: prod
+    resource_kind: ConfigMap
+    resource_name: bookstore-feature-flags
+    field_path: data.FEATURE_NEW_UI
+    expected: "true"
+  - desc: "dev api references bookstore-feature-flags"
+    env: dev
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: references_configmap
+    configmap_name: bookstore-feature-flags
+  - desc: "staging api references bookstore-feature-flags"
+    env: staging
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: references_configmap
+    configmap_name: bookstore-feature-flags
+  - desc: "prod api references bookstore-feature-flags"
+    env: prod
+    resource_kind: Deployment
+    resource_name: bookstore-api
+    check_type: references_configmap
+    configmap_name: bookstore-feature-flags

@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstore-api
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: api
+          image: bookstore/api:v1.2.0
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi

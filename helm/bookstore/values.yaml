@@ -1,0 +1,56 @@
+# Default values for bookstore (dev environment)
+
+global:
+  imageTag: latest
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: bookstore/frontend
+    tag: ""  # overrides global.imageTag when set
+  service:
+    type: LoadBalancer
+    port: 80
+
+api:
+  replicaCount: 1
+  image:
+    repository: bookstore/api
+    tag: ""
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+
+worker:
+  replicaCount: 1
+  image:
+    repository: bookstore/worker
+    tag: ""
+  service:
+    type: ClusterIP
+    port: 8090
+
+configmap:
+  app:
+    DB_HOST: db.bookstore.svc.cluster.local
+    DB_PORT: "5432"
+    APP_ENV: development
+  nginx:
+    NGINX_WORKER_PROCESSES: "1"
+    NGINX_WORKER_CONNECTIONS: "1024"
+
+ingress:
+  hostname: dev.bookstore.local
+
+secret:
+  dbCredentials:
+    username: Ym9va3N0b3Jl  # base64: bookstore
+    password: cGFzc3dvcmQx   # base64: password1

@@ -1,0 +1,14 @@
+id: T1-R1
+tier: 1
+category: read
+title: "値の照会"
+
+prompt: |
+  prod環境のapiコンテナのメモリlimit（resources.limits.memory）は何ですか？
+  答えをそのまま出力し、その後 DONE と出力してください。
+
+expected_answer: "1Gi"
+scoring: exact_match
+
+helm_expected_files_changed: []
+kustomize_expected_files_changed: []

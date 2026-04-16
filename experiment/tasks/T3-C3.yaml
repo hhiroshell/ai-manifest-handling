@@ -1,0 +1,48 @@
+id: T3-C3
+tier: 3
+category: cross-cutting
+title: "HPAの閾値変更"
+
+prompt: |
+  以下の変更を実施してください:
+  1. 全環境（dev、staging、prod）のHorizontalPodAutoscalerの targetCPUUtilizationPercentage を70から60に変更してください。
+  2. prod環境のHPAのminReplicasを2に設定してください（dev・stagingのminReplicasは変更しないこと）。
+  変更が完了したら DONE と出力してください。
+
+checks:
+  - desc: "dev HPA targetCPU == 60"
+    env: dev
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.metrics[0].resource.target.averageUtilization
+    expected: 60
+  - desc: "staging HPA targetCPU == 60"
+    env: staging
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.metrics[0].resource.target.averageUtilization
+    expected: 60
+  - desc: "prod HPA targetCPU == 60"
+    env: prod
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.metrics[0].resource.target.averageUtilization
+    expected: 60
+  - desc: "prod HPA minReplicas == 2"
+    env: prod
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.minReplicas
+    expected: 2
+  - desc: "dev HPA minReplicas unchanged (== 1)"
+    env: dev
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.minReplicas
+    expected: 1
+  - desc: "staging HPA minReplicas unchanged (== 1)"
+    env: staging
+    resource_kind: HorizontalPodAutoscaler
+    resource_name: bookstore-api
+    field_path: spec.minReplicas
+    expected: 1
