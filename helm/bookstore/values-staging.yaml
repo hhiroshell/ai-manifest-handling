@@ -7,7 +7,7 @@ frontend:
   replicaCount: 2
 
 api:
-  replicaCount: 3
+  replicaCount: 2
   resources:
     limits:
       cpu: 500m
