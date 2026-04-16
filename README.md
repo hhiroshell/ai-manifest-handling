@@ -187,7 +187,66 @@ Helm と Kustomize が全環境で意味的に同一の Manifest を生成する
 .venv/bin/python3 experiment/harness/runner.py --tool kustomize --task T3-C1
 ```
 
-### 5. 結果の分析
+### 5. デバッグモード（トレースの保存と確認）
+
+`--debug` フラグを付けると、各ターンのメッセージ内容とトークン数をまとめたトレースファイルが保存されます。実験後に「どんなやり取りが行われたか」を確認したい場合に使います。
+
+```bash
+# --debug を付けると通常の結果 JSON に加えてトレースファイルも保存される
+.venv/bin/python3 experiment/harness/runner.py \
+  --task T2-M1 --tool helm --reps 1 --debug
+```
+
+実行後、以下の2ファイルが生成されます。
+
+```
+results/helm/T2-M1/
+├── 001.json          # 通常のメトリクス（成功率・トークン数など）
+└── 001_trace.json    # ターンごとのやり取りの全記録
+```
+
+トレースは `show_trace.py` で確認できます。
+
+```bash
+# ターンごとのトークン数サマリーだけ表示
+.venv/bin/python3 experiment/harness/show_trace.py \
+  results/helm/T2-M1/001_trace.json --summary
+
+# 全ターンの内容を表示（長いテキストは自動省略）
+.venv/bin/python3 experiment/harness/show_trace.py \
+  results/helm/T2-M1/001_trace.json
+
+# 特定のターンだけ確認
+.venv/bin/python3 experiment/harness/show_trace.py \
+  results/helm/T2-M1/001_trace.json --turn 3
+
+# 省略なしで全文表示
+.venv/bin/python3 experiment/harness/show_trace.py \
+  results/helm/T2-M1/001_trace.json --verbose
+```
+
+`--summary` の出力例:
+
+```
+=== Trace Summary ===
+  Tool:    helm
+  Task:    T2-M1
+  Run:     1
+  Turns:   7
+
+Turn   Role         In tokens  Out tokens  Content summary
+------------------------------------------------------------------------
+   0   user                 -           -  text("You are working in a K...")
+   1   assistant        4,821         156  text("I'll update..."), tool_use(read_file)
+   2   user                 -           -  tool_result("apiVersion: apps/v1...")
+   3   assistant        5,203         312  tool_use(write_file)
+   4   user                 -           -  tool_result("Written 843 bytes...")
+   5   assistant        5,891          18  text("DONE")
+------------------------------------------------------------------------
+  Total               15,915         486
+```
+
+### 6. 結果の分析
 
 ```bash
 # サマリー表を標準出力に表示
