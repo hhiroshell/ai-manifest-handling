@@ -235,6 +235,11 @@ def main() -> None:
                 completed += 1
                 print(f"  Progress: {completed}/{total}")
 
+    # Reset working directory after the last run so parity_check and
+    # subsequent experiment runs always start from a clean state.
+    reset_to_baseline(str(working_dir))
+    print("\n[reset] Working directory restored to baseline after experiment.")
+
 
 if __name__ == "__main__":
     main()
