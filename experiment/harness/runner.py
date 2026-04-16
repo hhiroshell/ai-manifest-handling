@@ -208,19 +208,16 @@ def main() -> None:
 
     # Create baseline git tag (once per experiment run)
     if not args.skip_baseline_tag:
-        # Commit all current files to git if there are untracked files
-        result = subprocess.run(
+        # If a previous run left uncommitted edits in the working directory,
+        # discard them before tagging so the baseline stays clean.
+        dirty = subprocess.run(
             ["git", "status", "--porcelain"],
             capture_output=True, text=True, cwd=str(working_dir)
-        )
-        if result.stdout.strip():
-            subprocess.run(
-                ["git", "add", "-A"], cwd=str(working_dir), check=True
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "experiment: add all manifest and harness files"],
-                cwd=str(working_dir), check=True
-            )
+        ).stdout.strip()
+        if dirty:
+            print("[reset] Discarding uncommitted changes from previous run before tagging baseline...")
+            subprocess.run(["git", "checkout", "HEAD", "--", "."], cwd=str(working_dir), check=True)
+            subprocess.run(["git", "clean", "-fd"], cwd=str(working_dir), check=True)
         create_baseline_tag(str(working_dir))
 
     total = len(tools) * len(task_ids) * n_reps
