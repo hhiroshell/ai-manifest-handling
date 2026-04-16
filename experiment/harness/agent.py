@@ -91,6 +91,40 @@ class AgentMetrics:
 class AgentResult:
     metrics: AgentMetrics
     messages: list[dict] = field(default_factory=list)
+    trace: list[dict] = field(default_factory=list)  # per-turn records for debug
+
+
+# ---------------------------------------------------------------------------
+# Serialization helpers
+# ---------------------------------------------------------------------------
+
+def _serialize_content(content) -> list[dict]:
+    """Convert Anthropic SDK content blocks to JSON-serializable dicts."""
+    if isinstance(content, str):
+        return [{"type": "text", "text": content}]
+    result = []
+    for block in content:
+        if hasattr(block, "type"):
+            if block.type == "text":
+                result.append({"type": "text", "text": block.text})
+            elif block.type == "tool_use":
+                result.append({
+                    "type": "tool_use",
+                    "id": block.id,
+                    "name": block.name,
+                    "input": block.input,
+                })
+            elif block.type == "tool_result":
+                result.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.tool_use_id,
+                    "content": block.content,
+                })
+            else:
+                result.append({"type": block.type})
+        elif isinstance(block, dict):
+            result.append(block)
+    return result
 
 
 def _is_allowed_command(command: str) -> bool:
@@ -165,16 +199,29 @@ def run_agent(
     max_turns: int,
     working_dir: str,
     api_key: str | None = None,
+    debug: bool = False,
 ) -> AgentResult:
     """
     Run an agentic loop using the Anthropic SDK.
 
     Returns AgentResult with collected metrics and full message history.
+    When debug=True, the trace field is populated with per-turn records
+    (role, content, token counts) for post-hoc inspection.
     """
     client = anthropic.Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
     metrics = AgentMetrics()
     messages: list[dict] = [{"role": "user", "content": prompt}]
+    trace: list[dict] = []
     start_time = time.time()
+
+    if debug:
+        trace.append({
+            "turn": 0,
+            "role": "user",
+            "content": _serialize_content(prompt),
+            "input_tokens": None,
+            "output_tokens": None,
+        })
 
     for turn in range(max_turns):
         metrics.llm_calls += 1
@@ -208,6 +255,16 @@ def run_agent(
         # Append assistant message
         messages.append({"role": "assistant", "content": response.content})
 
+        if debug:
+            trace.append({
+                "turn": turn + 1,
+                "role": "assistant",
+                "content": _serialize_content(response.content),
+                "input_tokens": response.usage.input_tokens,
+                "output_tokens": response.usage.output_tokens,
+                "stop_reason": response.stop_reason,
+            })
+
         # Check for DONE signal in text
         if re.search(r'^\s*DONE\s*$', full_text, re.MULTILINE):
             metrics.success = True
@@ -229,5 +286,14 @@ def run_agent(
                 })
             messages.append({"role": "user", "content": tool_results})
 
+            if debug:
+                trace.append({
+                    "turn": turn + 1,
+                    "role": "user",
+                    "content": tool_results,
+                    "input_tokens": None,
+                    "output_tokens": None,
+                })
+
     metrics.wall_time_sec = time.time() - start_time
-    return AgentResult(metrics=metrics, messages=messages)
+    return AgentResult(metrics=metrics, messages=messages, trace=trace)

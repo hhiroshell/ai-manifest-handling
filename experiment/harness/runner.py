@@ -84,11 +84,31 @@ def result_path(tool: str, task_id: str, run: int) -> Path:
     return REPO_ROOT / "results" / tool / task_id / f"{run:03d}.json"
 
 
+def trace_path(tool: str, task_id: str, run: int) -> Path:
+    return REPO_ROOT / "results" / tool / task_id / f"{run:03d}_trace.json"
+
+
 def save_result(tool: str, task_id: str, run: int, data: dict) -> None:
     path = result_path(tool, task_id, run)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def save_trace(tool: str, task_id: str, run: int, agent_result, prompt: str) -> None:
+    """Save full per-turn message trace for debug inspection."""
+    data = {
+        "tool": tool,
+        "task_id": task_id,
+        "run": run,
+        "total_turns": len(agent_result.trace),
+        "turns": agent_result.trace,
+    }
+    path = trace_path(tool, task_id, run)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print(f"  Trace saved: {path}")
 
 
 def run_single(
@@ -97,13 +117,15 @@ def run_single(
     run: int,
     config: dict,
     working_dir: Path,
+    debug: bool = False,
 ) -> None:
     """Execute one (tool, task, run) combination."""
     exp = config["experiment"]
     task = load_task(task_id)
 
     print(f"\n{'='*60}")
-    print(f"  Tool: {tool}  Task: {task_id}  Run: {run}")
+    print(f"  Tool: {tool}  Task: {task_id}  Run: {run}"
+          + ("  [DEBUG]" if debug else ""))
     print(f"{'='*60}")
 
     # Reset working directory to baseline
@@ -120,6 +142,7 @@ def run_single(
         temperature=exp["temperature"],
         max_turns=exp["max_turns"],
         working_dir=str(working_dir),
+        debug=debug,
     )
     metrics = agent_result.metrics
 
@@ -155,6 +178,9 @@ def run_single(
 
     save_result(tool, task_id, run, result)
 
+    if debug:
+        save_trace(tool, task_id, run, agent_result, prompt)
+
     status = "PASS" if result["task_success"] else "FAIL"
     print(f"  Result: {status} | partial={result['partial_credit']:.2f} | "
           f"tokens={result['total_tokens']} | tool_calls={result['tool_calls']}")
@@ -166,6 +192,8 @@ def main() -> None:
     parser.add_argument("--tool", choices=["helm", "kustomize"], help="Run only this tool")
     parser.add_argument("--reps", type=int, help="Number of repetitions (overrides config)")
     parser.add_argument("--resume", action="store_true", help="Skip already-completed runs")
+    parser.add_argument("--debug", action="store_true",
+                        help="Save full per-turn message trace to results/{tool}/{task}/{run}_trace.json")
     parser.add_argument("--skip-baseline-tag", action="store_true",
                         help="Skip creating the baseline git tag (use if already created)")
     args = parser.parse_args()
@@ -206,7 +234,7 @@ def main() -> None:
                     completed += 1
                     continue
 
-                run_single(tool, task_id, run, config, working_dir)
+                run_single(tool, task_id, run, config, working_dir, debug=args.debug)
                 completed += 1
                 print(f"  Progress: {completed}/{total}")
 
