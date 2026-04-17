@@ -76,7 +76,7 @@ def load_results() -> dict[tuple[str, str], list[dict]]:
             if not task_dir.is_dir():
                 continue
             task_id = task_dir.name
-            for result_file in sorted(task_dir.glob("*.json")):
+            for result_file in sorted(task_dir.glob("[0-9][0-9][0-9].json")):
                 with open(result_file) as f:
                     data[(tool, task_id)].append(json.load(f))
     return data
